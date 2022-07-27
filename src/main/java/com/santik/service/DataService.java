@@ -25,12 +25,12 @@ import java.util.stream.Collectors;
 public abstract class DataService<T> {
 
     public static final int MAX_BUFFER_SIZE = 5;
-    public static final Duration MAX_BUFFER_TIME = Duration.ofMillis(500);
+    public static final Duration MAX_BUFFER_TIME = Duration.ofSeconds(5);
     private final WebClient webClient;
     private final String apiUri;
 
-    private Sinks.Many<List<String>> reqSink = Sinks.many().replay().all();
-    private Sinks.Many<Map<String, T>> resSink = Sinks.many().replay().all();
+    private final Sinks.Many<List<String>> reqSink = Sinks.many().replay().all();
+    private final Sinks.Many<Map<String, T>> resSink = Sinks.many().replay().all();
 
     @PostConstruct
     public void startListen() {
@@ -68,8 +68,10 @@ public abstract class DataService<T> {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, T>>() {
                 })
-                .onErrorReturn(e -> e instanceof WebClientRequestException ||e instanceof WebClientResponseException || e instanceof TimeoutException, list.stream().collect(Collectors.toMap(Function.identity(), getDefaultObjectFunction())))
-                ;
+                .onErrorReturn(
+                        e -> e instanceof WebClientRequestException || e instanceof WebClientResponseException || e instanceof TimeoutException,
+                        list.stream().collect(Collectors.toMap(Function.identity(), getDefaultObjectFunction()))
+                );
     }
 
     public abstract Function<Object, T> getDefaultObjectFunction();
