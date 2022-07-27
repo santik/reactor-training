@@ -1,10 +1,10 @@
-package com.tnt.service;
+package com.santik.service;
 
-import com.tnt.model.AggregatedResult;
-import java.util.Collections;
+import com.santik.model.AggregatedResult;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -22,9 +22,9 @@ public class ApiAggregationService {
         List<String> trackOptional,
         List<String> shipmentsOptional) {
 
-        Mono<Map<String, Double>> pricingResult = pricingService.fetchPrices(pricingOptional);
-        Mono<Map<String, String>> trackResult = trackService.fetchTracks(trackOptional);
-        Mono<Map<String, List<String>>> shipmentResult = shipmentService.fetchShipments(shipmentsOptional);
+        Mono<Map<String, Double>> pricingResult = pricingService.fetch(pricingOptional);
+        Mono<Map<String, String>> trackResult = trackService.fetch(trackOptional);
+        Mono<Map<String, List<String>>> shipmentResult = shipmentService.fetch(shipmentsOptional);
 
         return Mono.zip(pricingResult, trackResult, shipmentResult).map(
             tuple -> new AggregatedResult(tuple.getT1(), tuple.getT2(), tuple.getT3()));

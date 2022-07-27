@@ -1,4 +1,4 @@
-package com.tnt.service;
+package com.santik.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class PricingServiceTest {
         for (int i = 0; i < numberOfRequests; i ++ ) {
             List<String> pricing = generateRequestParams().getPricing();
             requests.add(pricing);
-            Mono<Map<String, Double>> prices = pricingService.fetchPrices(pricing);
+            Mono<Map<String, Double>> prices = pricingService.fetch(pricing);
             monos.add(prices);
         }
 

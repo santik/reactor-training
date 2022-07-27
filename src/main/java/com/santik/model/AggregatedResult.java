@@ -1,8 +1,8 @@
-package com.tnt.model;
+package com.santik.model;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

@@ -1,7 +1,7 @@
-package com.tnt.configuration;
+package com.santik.configuration;
 
 
-import com.tnt.model.ApisProperties;
+import com.santik.model.ApisProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

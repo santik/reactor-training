@@ -1,8 +1,8 @@
-package com.tnt.service;
+package com.santik.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.tnt.model.AggregatedResult;
+import com.santik.model.AggregatedResult;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +47,7 @@ class ApiAggregationServiceTest {
     @Test
     public void testFetch() {
 
-        int numberOfItems = 100;
+        int numberOfItems = 1000;
 
         List<RequestParams> requests = new ArrayList<>();
         for (int i = 0; i < numberOfItems; i++) {

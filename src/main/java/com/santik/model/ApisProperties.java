@@ -1,4 +1,4 @@
-package com.tnt.model;
+package com.santik.model;
 
 import lombok.Data;
 import lombok.Getter;
