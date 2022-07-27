@@ -30,7 +30,7 @@ class PricingServiceTest {
     @Test
     void fetchPrices() {
 
-        int numberOfRequests = 5;
+        int numberOfRequests = 1000;
         List<List<String>> requests = new ArrayList<>();
         List<Mono<Map<String, Double>>> monos = new ArrayList<>();
 
@@ -38,26 +38,19 @@ class PricingServiceTest {
             List<String> pricing = generateRequestParams().getPricing();
             requests.add(pricing);
             Mono<Map<String, Double>> prices = pricingService.fetchPrices(pricing);
-//            prices.subscribe(stringDoubleMap -> {
-//                log.info("Prices {}", stringDoubleMap);
-//            });
-            StepVerifier.create(prices).assertNext(stringDoubleMap -> {
-                        log.info("Received in response {}", stringDoubleMap);
-                        assertTrue(stringDoubleMap.keySet().containsAll(pricing));
-                    }).verifyComplete();
-//            monos.add(prices);
+            monos.add(prices);
         }
 
-//        for (int i = 0;  i < numberOfRequests; i ++ ) {
-//            int finalI = i;
-//            StepVerifier.create(monos.get(i))
-//                    .assertNext(stringDoubleMap -> {
-//                        log.info("Received {} {}", finalI, stringDoubleMap);
-//                        assertTrue(stringDoubleMap.keySet().containsAll(requests.get(finalI)));
-//                    })
-//                    .verifyComplete();
-//
-//        }
+        for (int i = 0;  i < numberOfRequests; i ++ ) {
+            int finalI = i;
+            StepVerifier.create(monos.get(i))
+                    .assertNext(stringDoubleMap -> {
+                        log.info("Received {} {}", finalI, stringDoubleMap);
+                        assertTrue(stringDoubleMap.keySet().containsAll(requests.get(finalI)));
+                    })
+                    .verifyComplete();
+
+        }
     }
 
 

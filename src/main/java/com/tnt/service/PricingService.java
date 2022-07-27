@@ -29,14 +29,13 @@ import static java.util.stream.Collectors.toMap;
 @RequiredArgsConstructor
 public class PricingService {
 
-    public static final int MAX_BUFFER_SIZE = 1;
+    public static final int MAX_BUFFER_SIZE = 5;
     public static final Duration MAX_BUFFER_TIME = Duration.ofMillis(500);
     private final WebClient pricingClient;
     private final ApisProperties aggregatedApiProperties;
 
     private Sinks.Many<List<String>> reqSink = Sinks.many().replay().all();
     private Sinks.Many<Map<String, Double>> resSink = Sinks.many().replay().all();
-    private Flux<Map<String, Double>> resFlux;
 
     @PostConstruct
     public void startListen() {
@@ -61,9 +60,9 @@ public class PricingService {
     }
 
     public Mono<Map<String, Double>> fetchPrices(List<String> list) {
-//        Mono<Map<String, Double>> mapMono = getMapMono(list);
+        Mono<Map<String, Double>> mapMono = getRes(list);
         reqSink.emitNext(list, Sinks.EmitFailureHandler.FAIL_FAST);
-        return getRes(list);
+        return mapMono;
     }
 
     private Mono<Map<String, Double>> getPricesFromClient(List<String> list) {
@@ -72,7 +71,8 @@ public class PricingService {
                 .get()
                 .uri(aggregatedApiProperties.getPricing().getUri(), String.join(",", list))
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Double>>() {})
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Double>>() {
+                })
                 .onErrorReturn(e -> e instanceof WebClientResponseException || e instanceof TimeoutException, list.stream().collect(Collectors.toMap(Function.identity(), v -> Double.valueOf(0))))
 //                .retryWhen(RetryUtil.retrySpec())
                 ;
@@ -83,42 +83,19 @@ public class PricingService {
 
         Map<String, Double> initialResult = new HashMap<>();
 
-        return  resSink.asFlux()
-                .reduce(initialResult, (accu, next) -> {
-            log.info("Next {}", next);
-            for (String req: list) {
-                if (next.containsKey(req)) {
-                    accu.put(req, next.get(req));
-                }
-            }
-            log.info("Accu {}", next);
-            return accu;
-        });
-
-    }
-
-    private Mono<Map<String, Double>> getMapMono(List<String> ids) {
-
-        log.info("Waiting for {}", ids);
-
-        return Mono.create(emitter -> {
-            Map<String, Double> response = new HashMap<>();
-
-            resSink.asFlux()
-                    .map(
-                            result -> result.entrySet().stream()
-                                    .filter(entry -> ids.contains(entry.getKey()))
-                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
-                    .filter(result -> !result.isEmpty())
-                    .subscribe(item -> {
-                        log.info("Making response {}", item);
-                        response.putAll(item);
-                        if (response.keySet().containsAll(ids)) {
-                            emitter.success(response);
-                        } else {
-                            log.info("Does not contain all");
+        return resSink.asFlux()
+                .scan(initialResult, (accu, next) -> {
+                    log.info("Next {}", next);
+                    for (String req : list) {
+                        if (next.containsKey(req)) {
+                            accu.put(req, next.get(req));
                         }
-                    });
-        });
+                    }
+                    log.info("Accu {}", next);
+                    return accu;
+                })
+                .takeUntil(stringDoubleMap -> stringDoubleMap.keySet().containsAll(list))
+                .last();
+
     }
 }
